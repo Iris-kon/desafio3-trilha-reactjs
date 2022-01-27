@@ -71,7 +71,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     try {
       // TODO 
     } catch {
-      // TODO
+      toast.error('Erro ao remover produto!')
     }
   };
 
@@ -82,7 +82,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     try {
       // TODO
     } catch {
-      // TODO
+      toast.error('Erro ao atualizar o produto!')
     }
   };
 
