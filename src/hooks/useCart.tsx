@@ -69,7 +69,18 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO 
+      const updatedCart = [...cart]
+      const removeProductIndex = updatedCart.findIndex(i => i.id === productId)
+    
+      if(removeProductIndex < 0) {
+        toast.error('Erro produto não encontrado!')
+        return
+      }
+
+      updatedCart.splice(removeProductIndex, 1)
+
+      setCart(updatedCart)
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart))
     } catch {
       toast.error('Erro ao remover produto!')
     }
@@ -80,7 +91,28 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
-      // TODO
+      const updatedCart = [...cart]
+
+      const stock = await api.get(`/stock/${productId}`)
+
+      const stockAmount = stock.data.amount
+
+      if(stockAmount < amount && amount > 0) {
+        toast.error('Quantidade solicitada fora de estoque')
+        return
+      }
+
+      const updateProductIndex = updatedCart.findIndex(i => i.id === productId)
+      
+      if(updateProductIndex < 0) {
+        toast.error('Erro produto não encontrado!')
+        return
+      }
+
+      updatedCart[updateProductIndex].amount = amount
+
+      setCart(updatedCart)
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart))
     } catch {
       toast.error('Erro ao atualizar o produto!')
     }
