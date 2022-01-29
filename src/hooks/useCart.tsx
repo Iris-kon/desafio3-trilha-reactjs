@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useContext, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
-import { Product, Stock } from '../types';
+import { Product } from '../types';
 
 interface CartProviderProps {
   children: ReactNode;
@@ -35,12 +35,12 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const addProduct = async (productId: number) => {
     try {
       const updatedCart = [...cart]
-      const productExist = cart.find(product => product.id === productId)
+      const productExists = cart.find(product => product.id === productId)
 
       const stock = await api.get(`/stock/${productId}`)
 
       const stockAmount = stock.data.amount
-      const currentAmount = productExist ? productExist.amount : 0
+      const currentAmount = productExists ? productExists.amount : 0
       const amount = currentAmount + 1
 
       if(stockAmount < amount) {
@@ -48,8 +48,8 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
         return
       }
 
-      if(productExist) {
-        productExist.amount = amount
+      if(productExists) {
+        productExists.amount = amount
       }else {
         const product = await api.get(`/products/${productId}`)
 
@@ -63,7 +63,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       setCart(updatedCart)
       localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart))
     } catch {
-      toast.error('Erro ao adicionar o produto!')
+      toast.error('Erro na adição do produto')
     }
   };
 
@@ -73,7 +73,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       const removeProductIndex = updatedCart.findIndex(i => i.id === productId)
     
       if(removeProductIndex < 0) {
-        toast.error('Erro produto não encontrado!')
+        toast.error('Erro na remoção do produto')
         return
       }
 
@@ -91,30 +91,30 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
-      const updatedCart = [...cart]
+      if(amount < 1) return
 
       const stock = await api.get(`/stock/${productId}`)
 
       const stockAmount = stock.data.amount
 
-      if(stockAmount < amount && amount > 0) {
+      if(stockAmount < amount) {
         toast.error('Quantidade solicitada fora de estoque')
         return
       }
 
-      const updateProductIndex = updatedCart.findIndex(i => i.id === productId)
+      const updatedCart = [...cart]
+      const productExists = updatedCart.find(i => i.id === productId)
       
-      if(updateProductIndex < 0) {
-        toast.error('Erro produto não encontrado!')
-        return
+      if(productExists) {
+        productExists.amount = amount
+        setCart(updatedCart)
+        localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart))
+      } else {
+        throw Error()
       }
-
-      updatedCart[updateProductIndex].amount = amount
-
-      setCart(updatedCart)
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart))
+      
     } catch {
-      toast.error('Erro ao atualizar o produto!')
+      toast.error('Erro na alteração de quantidade do produto')
     }
   };
 
